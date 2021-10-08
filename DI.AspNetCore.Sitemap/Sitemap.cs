@@ -3,6 +3,7 @@ using System.Xml.Linq;
 using System.IO;
 using System.Globalization;
 using System.Linq;
+using System.Collections.Generic;
 
 
 /*
@@ -118,6 +119,61 @@ namespace DI.AspNetCore.Sitemap
                 u.Add(new XElement(NS + "changefreq", change.ToString().ToLower()));
 
                 doc.Root.Add(u);
+                doc.Save(pathFile);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Ошибка при добавлении элемента в карту сайта");
+                Console.WriteLine(ex.Message + ex.StackTrace);
+                return false;
+            }
+
+        }
+
+        /// <summary>
+        /// Пакетное добавление элементов в карту сайта
+        /// </summary>
+        /// <param name="pathFile">Путь к карте сайта</param>
+        /// <param name="items">Список элементов</param>
+        /// <returns></returns>
+        public static bool AddItems(string pathFile, List<SitemapItem> items)
+        {
+            try
+            {
+                //Проверяем наличие файла карты сайта,
+                //если карта сайта не найдена, то создаем файл карты сайта
+                if (!File.Exists(pathFile))
+                    CreateSitemap(pathFile);
+
+                XDocument doc = XDocument.Load(pathFile);
+                XNamespace NS = doc.Root.GetDefaultNamespace();
+
+                //Карты сайта имеют ограниечение на 50000 записей
+                //проверяе количество записей
+                //если число записей достигло предела, возвращаем false
+                if (doc.Root.Nodes().Count() > 49998)
+                {
+                    Console.WriteLine("Превышено количество записей для одной карты сайта");
+                    return false;
+                }
+
+                //Проход по всем записям
+                //
+                foreach(SitemapItem item in items)
+                {
+                    XElement u = new XElement(NS + "url");
+                    XElement loc = new XElement(NS + "loc", item.Url);
+
+                    u.Add(loc);
+                    u.Add(new XElement(NS + "lastmod", item.DateModified.ToString("yyyy-MM-ddTHH:mm:ss.f") + "+00:00"));
+                    u.Add(new XElement(NS + "priority", item.Priority.ToString("N1", CultureInfo.InvariantCulture)));
+                    u.Add(new XElement(NS + "changefreq", item.Change.ToString().ToLower()));
+
+                    doc.Root.Add(u);
+                }
+                //Сохраняем карту сайта
                 doc.Save(pathFile);
 
                 return true;
