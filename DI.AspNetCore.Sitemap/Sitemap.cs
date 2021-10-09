@@ -28,6 +28,7 @@ never
 Кроме того, следует учитывать, что назначение высокого приоритета всем URL на Вашем сайте не имеет смысла. Поскольку приоритетность – величина относительная, этот параметр используется для того, чтобы определить очередность обработки URL в пределах сайта.
  
 https://www.sitemaps.org/ru/protocol.html
+
  */
 namespace DI.AspNetCore.Sitemap
 {
@@ -130,6 +131,17 @@ namespace DI.AspNetCore.Sitemap
                 return false;
             }
 
+        }
+
+        /// <summary>
+        /// Добавляет элемент в карту сайта
+        /// </summary>
+        /// <param name="pathFile">Путь к карте сайта</param>
+        /// <param name="item">Запись карты сайта</param>
+        /// <returns></returns>
+        public static bool AddItem(string pathFile, SitemapItem item)
+        {
+            return AddItem(pathFile, item.Url, item.DateModified, item.Change, item.Priority);
         }
 
         /// <summary>
